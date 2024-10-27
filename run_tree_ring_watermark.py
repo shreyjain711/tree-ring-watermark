@@ -20,7 +20,7 @@ def main(args):
         wandb.login(key="c7d77f7080d30d032dcac5a88bc6e3ea18058724")
         wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'])
         wandb.config.update(args)
-        table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric', 'w_noise_vec', 'w_noise_vec_w_perturb'])
+        table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric', 'w_noise_vec', 'w_noise_vec_w_perturb', 'wm'])
     
     # load diffusion model
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -145,7 +145,7 @@ def main(args):
         if args.with_tracking:
         #     if (args.reference_model is not None) and (i < args.max_num_log_image):
                 # log images when we use reference_model
-            table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, current_prompt, no_w_metric, w_metric, wandb.Image(init_latents_w), wandb.Image(reversed_latents_w))
+            table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, current_prompt, no_w_metric, w_metric, wandb.Image(init_latents_w), wandb.Image(reversed_latents_w), wandb.Image(watermarking_mask))
             # else:
             #     table.add_data(None, w_no_sim, None, w_sim, current_prompt, no_w_metric, w_metric, None, None)
 
