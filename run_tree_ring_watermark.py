@@ -142,10 +142,10 @@ def main(args):
         no_w_metrics.append(-no_w_metric)
         w_metrics.append(-w_metric)
 
-        # if args.with_tracking:
+        if args.with_tracking:
         #     if (args.reference_model is not None) and (i < args.max_num_log_image):
                 # log images when we use reference_model
-        table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, current_prompt, no_w_metric, w_metric, wandb.Image(init_latents_w), wandb.Image(reversed_latents_w))
+            table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, current_prompt, no_w_metric, w_metric, wandb.Image(init_latents_w), wandb.Image(reversed_latents_w))
             # else:
             #     table.add_data(None, w_no_sim, None, w_sim, current_prompt, no_w_metric, w_metric, None, None)
 
