@@ -57,7 +57,7 @@ def main(args):
     for i in tqdm(range(args.start, args.end)):
         seed = i + args.gen_seed
         
-        current_prompt = dataset[i][prompt_key]
+        current_prompt = dataset[i][prompt_key] if args.end!=1 else "white square background and a black square inside it center aligned and covering 80% of the area"
         
         ### generation
         # generation without watermarking
