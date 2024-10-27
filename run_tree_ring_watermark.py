@@ -145,7 +145,10 @@ def main(args):
         if args.with_tracking:
         #     if (args.reference_model is not None) and (i < args.max_num_log_image):
                 # log images when we use reference_model
-            table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, current_prompt, no_w_metric, w_metric, wandb.Image(torch.fft.fftshift(torch.fft.fft2(init_latents_w), dim=(-1, -2))), wandb.Image(torch.fft.fftshift(torch.fft.fft2(reversed_latents_w), dim=(-1, -2))), wandb.Image(watermarking_mask.to(torch.float32)))
+            table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, current_prompt, no_w_metric, w_metric, 
+                           wandb.Image(torch.fft.fftshift(torch.fft.fft2(init_latents_w), dim=(-1, -2)).real.to(torch.float32)), 
+                           wandb.Image(torch.fft.fftshift(torch.fft.fft2(reversed_latents_w), dim=(-1, -2)).real.to(torch.float32)), 
+                           wandb.Image(watermarking_mask.to(torch.float32)))
             # else:
             #     table.add_data(None, w_no_sim, None, w_sim, current_prompt, no_w_metric, w_metric, None, None)
 
