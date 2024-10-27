@@ -209,11 +209,11 @@ if __name__ == '__main__':
     parser.add_argument('--gaussian_std', default=None, type=float)
     parser.add_argument('--brightness_factor', default=None, type=float)
     parser.add_argument('--rand_aug', default=0, type=int)
-    parser.add_argument('--resizedcrop_factor', default=0.3, type=float)
-    parser.add_argument('--erasing_factor', default=0.3, type=float)
-    parser.add_argument('--contrast_factor', default=0.3, type=float)
-    parser.add_argument('--noise_factor', default=0.3, type=float)
-    parser.add_argument('--compression_factor', default=0.3, type=float)
+    parser.add_argument('--resizedcrop_factor', default=None, type=float)
+    parser.add_argument('--erasing_factor', default=None, type=float)
+    parser.add_argument('--contrast_factor', default=None, type=float)
+    parser.add_argument('--noise_factor', default=None, type=float)
+    parser.add_argument('--compression_factor', default=None, type=float)
 
     args = parser.parse_args()
 
