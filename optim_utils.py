@@ -297,10 +297,8 @@ def image_distortion(img1, img2, seed, args):
         img1 = to_tensor([img1], norm_type=None)
         noise = torch.randn(img1.size()) * std
         img1 = to_pil((img1 + noise).clamp(0, 1), norm_type=None)[0]
+        img2 = to_tensor([img2], norm_type=None)
         img2 = to_pil((img2 + noise).clamp(0, 1), norm_type=None)[0]
-
-        # img1 = apply_single_distortion(img1, distortion_type = "noise", strength=args.resizedcrop_factor, distortion_seed=0)
-        # img2 = apply_single_distortion(img2, distortion_type = "noise", strength=args.resizedcrop_factor, distortion_seed=0)
 
     if args.compression_factor is not None:
         quality = args.compression_factor if args.compression_factor is not None else random.uniform(90, 10)
