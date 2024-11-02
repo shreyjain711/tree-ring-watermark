@@ -1,7 +1,8 @@
 import torch
 from torchvision import transforms
 from datasets import load_dataset
-
+import torchvision.transforms as T
+import torchvision.transforms.functional as F
 from PIL import Image, ImageFilter
 import random
 import numpy as np
