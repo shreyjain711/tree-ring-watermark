@@ -233,15 +233,15 @@ def image_distortion(img1, img2, seed, args):
 
     if args.erasing_factor is not None:
         scale = args.erasing_factor if args.erasing_factor is not None else random.uniform(0, 0.25)
-        image1 = to_tensor([image1], norm_type=None)
-        image2 = to_tensor([image2], norm_type=None)
+        img1 = to_tensor([img1], norm_type=None)
+        img2 = to_tensor([img2], norm_type=None)
         i, j, h, w, v = T.RandomErasing.get_params(
-            image1, scale=(scale, scale), ratio=(1, 1), value=[0]
+            img1, scale=(scale, scale), ratio=(1, 1), value=[0]
         )
-        image1 = F.erase(image1, i, j, h, w, v)
-        image1 = to_pil(image1, norm_type=None)[0]
-        image2 = F.erase(image2, i, j, h, w, v)
-        image2 = to_pil(image2, norm_type=None)[0]
+        img1 = F.erase(img1, i, j, h, w, v)
+        img1 = to_pil(img1, norm_type=None)[0]
+        img2 = F.erase(img2, i, j, h, w, v)
+        img2 = to_pil(img2, norm_type=None)[0]
 
     if args.contrast_factor is not None:
         factor = args.contrast_factor if args.contrast_factor is not None else random.uniform(1, 2)
