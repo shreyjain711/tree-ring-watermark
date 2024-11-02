@@ -177,6 +177,41 @@ def latents_to_imgs(pipe, latents):
 #         assert False
 
 #     return distorted_image
+def normalize_tensor(images, norm_type):
+    assert norm_type in ["imagenet", "naive"]
+    # Two possible normalization conventions
+    if norm_type == "imagenet":
+        mean = [0.485, 0.456, 0.406]
+        std = [0.229, 0.224, 0.225]
+        normalize = transforms.Normalize(mean, std)
+    elif norm_type == "naive":
+        mean = [0.5, 0.5, 0.5]
+        std = [0.5, 0.5, 0.5]
+        normalize = transforms.Normalize(mean, std)
+    else:
+        assert False
+    return torch.stack([normalize(image) for image in images])
+
+def unnormalize_tensor(images, norm_type):
+    assert norm_type in ["imagenet", "naive"]
+    # Two possible normalization conventions
+    if norm_type == "imagenet":
+        mean = [0.485, 0.456, 0.406]
+        std = [0.229, 0.224, 0.225]
+        unnormalize = transforms.Normalize(
+            (-mean[0] / std[0], -mean[1] / std[1], -mean[2] / std[2]),
+            (1 / std[0], 1 / std[1], 1 / std[2]),
+        )
+    elif norm_type == "naive":
+        mean = [0.5, 0.5, 0.5]
+        std = [0.5, 0.5, 0.5]
+        unnormalize = transforms.Normalize(
+            (-mean[0] / std[0], -mean[1] / std[1], -mean[2] / std[2]),
+            (1 / std[0], 1 / std[1], 1 / std[2]),
+        )
+    else:
+        assert False
+    return torch.stack([unnormalize(image) for image in images])
 
 def to_tensor(images, norm_type="naive"):
     assert isinstance(images, list) and all(
@@ -186,6 +221,12 @@ def to_tensor(images, norm_type="naive"):
     if norm_type is not None:
         images = normalize_tensor(images, norm_type)
     return images
+
+def to_pil(images, norm_type="naive"):
+    assert isinstance(images, torch.Tensor)
+    if norm_type is not None:
+        images = unnormalize_tensor(images, norm_type).clamp(0, 1)
+    return [transforms.ToPILImage()(image) for image in images.cpu()]
 
 def image_distortion(img1, img2, seed, args):
     if args.r_degree is not None:
@@ -245,17 +286,18 @@ def image_distortion(img1, img2, seed, args):
 
     if args.contrast_factor is not None:
         factor = args.contrast_factor if args.contrast_factor is not None else random.uniform(1, 2)
-        enhancer = ImageEnhance.Contrast(image1)
-        image1 = enhancer.enhance(factor)
-        enhancer = ImageEnhance.Contrast(image2)
-        image2 = enhancer.enhance(factor)
+        enhancer = ImageEnhance.Contrast(img1)
+        img1 = enhancer.enhance(factor)
+        enhancer = ImageEnhance.Contrast(img2)
+        img2 = enhancer.enhance(factor)
 
 
     if args.noise_factor is not None:
         std = args.noise_factor if args.noise_factor is not None else random.uniform(0, 0.1)
-        image1 = to_tensor([image1], norm_type=None)
-        noise = torch.randn(image1.size()) * std
-        image1 = to_pil((image1 + noise).clamp(0, 1), norm_type=None)[0]
+        img1 = to_tensor([img1], norm_type=None)
+        noise = torch.randn(img1.size()) * std
+        img1 = to_pil((img1 + noise).clamp(0, 1), norm_type=None)[0]
+        img2 = to_pil((img2 + noise).clamp(0, 1), norm_type=None)[0]
 
         # img1 = apply_single_distortion(img1, distortion_type = "noise", strength=args.resizedcrop_factor, distortion_seed=0)
         # img2 = apply_single_distortion(img2, distortion_type = "noise", strength=args.resizedcrop_factor, distortion_seed=0)
