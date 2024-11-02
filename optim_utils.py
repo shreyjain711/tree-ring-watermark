@@ -215,9 +215,12 @@ def image_distortion(img1, img2, seed, args):
     if args.resizedcrop_factor is not None:
         scale = args.resizedcrop_factor if args.resizedcrop_factor is not None else random.uniform(1, 0.5)
         i, j, h, w = T.RandomResizedCrop.get_params(
-            image, scale=(scale, scale), ratio=(1, 1)
+            img1, scale=(scale, scale), ratio=(1, 1)
         )
         img1 = F.resized_crop(img1, i, j, h, w, img1.size)
+        # i, j, h, w = T.RandomResizedCrop.get_params(
+        #     img2, scale=(scale, scale), ratio=(1, 1)
+        # )
         img2 = F.resized_crop(img2, i, j, h, w, img2.size)
 
         ### test more perturbation on tree ring
