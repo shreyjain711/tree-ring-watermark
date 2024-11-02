@@ -46,13 +46,13 @@ def latents_to_imgs(pipe, latents):
     return x
 
 
-distortion_strength_paras = dict(
-    resizedcrop=(1, 0.5),
-    erasing=(0, 0.25),
-    contrast=(1, 2),
-    noise=(0, 0.1),
-    compression=(90, 10),
-)
+# distortion_strength_paras = dict(
+#     resizedcrop=(1, 0.5),
+#     erasing=(0, 0.25),
+#     contrast=(1, 2),
+#     noise=(0, 0.1),
+#     compression=(90, 10),
+# )
 
 
 # def relative_strength_to_absolute(strength, distortion_type):
@@ -103,80 +103,80 @@ distortion_strength_paras = dict(
 #     return distorted_images
 
 
-def apply_single_distortion(image, distortion_type, strength=None, distortion_seed=0):
-    # Accept a single image
-    assert isinstance(image, Image.Image)
-    # Set the random seed for the distortion if given
-    set_random_seed(distortion_seed)
-    # Assert distortion type is valid
-    assert distortion_type in distortion_strength_paras.keys()
-    # Assert strength is in the correct range
-    if strength is not None:
-        assert (
-            min(*distortion_strength_paras[distortion_type])
-            <= strength
-            <= max(*distortion_strength_paras[distortion_type])
-        )
+# def apply_single_distortion(image, distortion_type, strength=None, distortion_seed=0):
+#     # Accept a single image
+#     assert isinstance(image, Image.Image)
+#     # Set the random seed for the distortion if given
+#     set_random_seed(distortion_seed)
+#     # Assert distortion type is valid
+#     assert distortion_type in distortion_strength_paras.keys()
+#     # Assert strength is in the correct range
+#     if strength is not None:
+#         assert (
+#             min(*distortion_strength_paras[distortion_type])
+#             <= strength
+#             <= max(*distortion_strength_paras[distortion_type])
+#         )
 
-    # Apply the distortion
-    if distortion_type == "resizedcrop":
-        scale = (
-            strength
-            if strength is not None
-            else random.uniform(*distortion_strength_paras["resizedcrop"])
-        )
-        i, j, h, w = T.RandomResizedCrop.get_params(
-            image, scale=(scale, scale), ratio=(1, 1)
-        )
-        distorted_image = F.resized_crop(image, i, j, h, w, image.size)
+#     # Apply the distortion
+#     if distortion_type == "resizedcrop":
+#         scale = (
+#             strength
+#             if strength is not None
+#             else random.uniform(*distortion_strength_paras["resizedcrop"])
+#         )
+#         i, j, h, w = T.RandomResizedCrop.get_params(
+#             image, scale=(scale, scale), ratio=(1, 1)
+#         )
+#         distorted_image = F.resized_crop(image, i, j, h, w, image.size)
 
-    elif distortion_type == "erasing":
-        scale = (
-            strength
-            if strength is not None
-            else random.uniform(*distortion_strength_paras["erasing"])
-        )
-        image = to_tensor([image], norm_type=None)
-        i, j, h, w, v = T.RandomErasing.get_params(
-            image, scale=(scale, scale), ratio=(1, 1), value=[0]
-        )
-        distorted_image = F.erase(image, i, j, h, w, v)
-        distorted_image = to_pil(distorted_image, norm_type=None)[0]
+#     elif distortion_type == "erasing":
+#         scale = (
+#             strength
+#             if strength is not None
+#             else random.uniform(*distortion_strength_paras["erasing"])
+#         )
+#         image = to_tensor([image], norm_type=None)
+#         i, j, h, w, v = T.RandomErasing.get_params(
+#             image, scale=(scale, scale), ratio=(1, 1), value=[0]
+#         )
+#         distorted_image = F.erase(image, i, j, h, w, v)
+#         distorted_image = to_pil(distorted_image, norm_type=None)[0]
 
-    elif distortion_type == "contrast":
-        factor = (
-            strength
-            if strength is not None
-            else random.uniform(*distortion_strength_paras["contrast"])
-        )
-        enhancer = ImageEnhance.Contrast(image)
-        distorted_image = enhancer.enhance(factor)
+#     elif distortion_type == "contrast":
+#         factor = (
+#             strength
+#             if strength is not None
+#             else random.uniform(*distortion_strength_paras["contrast"])
+#         )
+#         enhancer = ImageEnhance.Contrast(image)
+#         distorted_image = enhancer.enhance(factor)
 
-    elif distortion_type == "noise":
-        std = (
-            strength
-            if strength is not None
-            else random.uniform(*distortion_strength_paras["noise"])
-        )
-        image = to_tensor([image], norm_type=None)
-        noise = torch.randn(image.size()) * std
-        distorted_image = to_pil((image + noise).clamp(0, 1), norm_type=None)[0]
+#     elif distortion_type == "noise":
+#         std = (
+#             strength
+#             if strength is not None
+#             else random.uniform(*distortion_strength_paras["noise"])
+#         )
+#         image = to_tensor([image], norm_type=None)
+#         noise = torch.randn(image.size()) * std
+#         distorted_image = to_pil((image + noise).clamp(0, 1), norm_type=None)[0]
 
-    elif distortion_type == "compression":
-        quality = (
-            strength
-            if strength is not None
-            else random.uniform(*distortion_strength_paras["compression"])
-        )
-        quality = int(quality)
-        buffered = io.BytesIO()
-        image.save(buffered, format="JPEG", quality=quality)
-        distorted_image = Image.open(buffered)
+#     elif distortion_type == "compression":
+#         quality = (
+#             strength
+#             if strength is not None
+#             else random.uniform(*distortion_strength_paras["compression"])
+#         )
+#         quality = int(quality)
+#         buffered = io.BytesIO()
+#         image.save(buffered, format="JPEG", quality=quality)
+#         distorted_image = Image.open(buffered)
 
-    else:
-        assert False
+#     else:
+#         assert False
 
-    return distorted_image
+#     return distorted_image
 
 
 
@@ -212,6 +212,7 @@ def image_distortion(img1, img2, seed, args):
         img1 = transforms.ColorJitter(brightness=args.brightness_factor)(img1)
         img2 = transforms.ColorJitter(brightness=args.brightness_factor)(img2)
     
+    ### test more perturbation on tree ring
     if args.resizedcrop_factor is not None:
         scale = args.resizedcrop_factor if args.resizedcrop_factor is not None else random.uniform(1, 0.5)
         i, j, h, w = T.RandomResizedCrop.get_params(
@@ -223,14 +224,22 @@ def image_distortion(img1, img2, seed, args):
         # )
         img2 = F.resized_crop(img2, i, j, h, w, img2.size)
 
-        ### test more perturbation on tree ring
-    # if args.resizedcrop_factor is not None:
-    #     img1 = apply_single_distortion(img1, distortion_type = "resizedcrop", strength=args.resizedcrop_factor, distortion_seed=0)
-    #     img2 = apply_single_distortion(img2, distortion_type = "resizedcrop", strength=args.resizedcrop_factor, distortion_seed=0)
-
     if args.erasing_factor is not None:
-        img1 = apply_single_distortion(img1, distortion_type = "erasing", strength=args.resizedcrop_factor, distortion_seed=0)
-        img2 = apply_single_distortion(img2, distortion_type = "erasing", strength=args.resizedcrop_factor, distortion_seed=0)
+        scale = args.resizedcrop_factor if args.resizedcrop_factor is not None else random.uniform(0, 0.25)
+        image1 = to_tensor([image1], norm_type=None)
+        image2 = to_tensor([image2], norm_type=None)
+        i, j, h, w, v = T.RandomErasing.get_params(
+            image1, scale=(scale, scale), ratio=(1, 1), value=[0]
+        )
+        image1 = F.erase(image1, i, j, h, w, v)
+        image1 = to_pil(image1, norm_type=None)[0]
+        image2 = F.erase(image2, i, j, h, w, v)
+        image2 = to_pil(image2, norm_type=None)[0]
+
+
+    # if args.erasing_factor is not None:
+    #     img1 = apply_single_distortion(img1, distortion_type = "erasing", strength=args.resizedcrop_factor, distortion_seed=0)
+    #     img2 = apply_single_distortion(img2, distortion_type = "erasing", strength=args.resizedcrop_factor, distortion_seed=0)
 
     if args.contrast_factor is not None:
         img1 = apply_single_distortion(img1, distortion_type = "contrast", strength=args.resizedcrop_factor, distortion_seed=0)
