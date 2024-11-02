@@ -225,7 +225,7 @@ def image_distortion(img1, img2, seed, args):
         img2 = F.resized_crop(img2, i, j, h, w, img2.size)
 
     if args.erasing_factor is not None:
-        scale = args.resizedcrop_factor if args.resizedcrop_factor is not None else random.uniform(0, 0.25)
+        scale = args.erasing_factor if args.erasing_factor is not None else random.uniform(0, 0.25)
         image1 = to_tensor([image1], norm_type=None)
         image2 = to_tensor([image2], norm_type=None)
         i, j, h, w, v = T.RandomErasing.get_params(
@@ -236,14 +236,13 @@ def image_distortion(img1, img2, seed, args):
         image2 = F.erase(image2, i, j, h, w, v)
         image2 = to_pil(image2, norm_type=None)[0]
 
-
-    # if args.erasing_factor is not None:
-    #     img1 = apply_single_distortion(img1, distortion_type = "erasing", strength=args.resizedcrop_factor, distortion_seed=0)
-    #     img2 = apply_single_distortion(img2, distortion_type = "erasing", strength=args.resizedcrop_factor, distortion_seed=0)
-
     if args.contrast_factor is not None:
-        img1 = apply_single_distortion(img1, distortion_type = "contrast", strength=args.resizedcrop_factor, distortion_seed=0)
-        img2 = apply_single_distortion(img2, distortion_type = "contrast", strength=args.resizedcrop_factor, distortion_seed=0)
+        factor = args.contrast_factor if args.contrast_factor is not None else random.uniform(1, 2)
+        enhancer = ImageEnhance.Contrast(image1)
+        image1 = enhancer.enhance(factor)
+        enhancer = ImageEnhance.Contrast(image2)
+        image2 = enhancer.enhance(factor)
+
 
     if args.noise_factor is not None:
         img1 = apply_single_distortion(img1, distortion_type = "noise", strength=args.resizedcrop_factor, distortion_seed=0)
