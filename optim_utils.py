@@ -395,7 +395,7 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
         gt_patch = gt_init
 
         gt_patch_tmp = copy.deepcopy(gt_patch)
-        for i in range(args.w_radius, 0, -1):
+        for i in range(args.w_radius, 0, -args.w_radius_incr):
             tmp_mask = circle_mask(gt_init.shape[-1], r=i)
             tmp_mask = torch.tensor(tmp_mask).to(device)
             

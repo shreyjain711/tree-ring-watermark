@@ -12,6 +12,7 @@ from diffusers import DPMSolverMultistepScheduler
 import open_clip
 from optim_utils import *
 from io_utils import *
+from exp_utils import *
 
 
 def main(args):
@@ -20,8 +21,12 @@ def main(args):
         wandb.login(key="c7d77f7080d30d032dcac5a88bc6e3ea18058724")
         wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'])
         wandb.config.update(args)
-        table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score','perturb_gen_no_w', 'perturb_gen_w', 'prompt', 'no_w_metric', 'w_metric', 'w_noise_vec', 'w_noise_vec_w_perturb', 'wm'])
+        # table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric', 'w_noise_vec', 'w_noise_vec_w_perturb', 'wm'])
+        table = wandb.Table(columns=['exp_name', 'noise_vec_fft', 'noise_vec_fft_perturb', 'wm_mask', 'prompt', 'no_w_metric', 'w_metric', 'gen_no_w', 'gen_no_w_auged', 'gen_w', 'gen_w_auged'])
     
+
+    exp_name = set_exp_name(args)
+
     # load diffusion model
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
@@ -143,17 +148,20 @@ def main(args):
         w_metrics.append(-w_metric)
 
         if args.with_tracking:
-        #     if (args.reference_model is not None) and (i < args.max_num_log_image):
-                # log images when we use reference_model
+            #table: 'exp_name', 'noise_vec_fft', 'noise_vec_fft_perturb', 'wm_mask', 'prompt', 'no_w_metric', 'w_metric', 'gen_no_w', 'gen_no_w_auged', 'gen_w', 'gen_w_auged'
+            noise_vec_fft_img, noise_vec_fft_perturb_img = wandb.Image(noise_vec_to_fft_real(init_latents_w)), wandb.Image(noise_vec_to_fft_real(reversed_latents_w))
+            wm_mask_img = wandb.Image(watermarking_mask.to(torch.float32))
 
-            #        table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric', 'w_noise_vec', 'w_noise_vec_w_perturb', 'wm'])
-            table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, wandb.Image(orig_image_no_w_auged), wandb.Image(orig_image_w_auged), current_prompt, no_w_metric, w_metric, 
-                           wandb.Image(torch.fft.fftshift(torch.fft.fft2(init_latents_w), dim=(-1, -2)).real.to(torch.float32)), 
-                           wandb.Image(torch.fft.fftshift(torch.fft.fft2(reversed_latents_w), dim=(-1, -2)).real.to(torch.float32)), 
-                           wandb.Image(watermarking_mask.to(torch.float32)))
-            # else:
-            #     table.add_data(None, w_no_sim, None, w_sim, current_prompt, no_w_metric, w_metric, None, None)
+            gen_no_w_img, gen_no_w_auged_img = wandb.Image(orig_image_no_w), wandb.Image(orig_image_no_w_auged)
+            gen_w_img, gen_w_auged_img = wandb.Image(orig_image_w), wandb.Image(orig_image_w_auged)
 
+            table.add_data(exp_name, 
+                           noise_vec_fft_img, noise_vec_fft_perturb_img, wm_mask_img, 
+                           current_prompt, 
+                           no_w_metric, w_metric, 
+                           gen_no_w_img, gen_no_w_auged_img, 
+                           gen_w_img, gen_w_auged_img)
+            
             clip_scores.append(w_no_sim)
             clip_scores_w.append(w_sim)
 
@@ -197,13 +205,14 @@ if __name__ == '__main__':
 
     # watermark
     parser.add_argument('--w_seed', default=999999, type=int)
-    parser.add_argument('--w_channel', default=0, type=int)
-    parser.add_argument('--w_pattern', default='rand')
+    parser.add_argument('--w_channel', default=-1, type=int) # TODO test what happens on using -1, 0, 1, 2, 
+    parser.add_argument('--w_pattern', default='ring')
     parser.add_argument('--w_mask_shape', default='circle')
     parser.add_argument('--w_radius', default=10, type=int)
     parser.add_argument('--w_measurement', default='l1_complex')
     parser.add_argument('--w_injection', default='complex')
     parser.add_argument('--w_pattern_const', default=0, type=float)
+    parser.add_argument('--w_radius_incr', default=1, type=int)
     
     # for image distortion
     parser.add_argument('--r_degree', default=None, type=float)
