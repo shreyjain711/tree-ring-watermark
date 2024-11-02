@@ -178,7 +178,14 @@ def latents_to_imgs(pipe, latents):
 
 #     return distorted_image
 
-
+def to_tensor(images, norm_type="naive"):
+    assert isinstance(images, list) and all(
+        [isinstance(image, Image.Image) for image in images]
+    )
+    images = torch.stack([transforms.ToTensor()(image) for image in images])
+    if norm_type is not None:
+        images = normalize_tensor(images, norm_type)
+    return images
 
 def image_distortion(img1, img2, seed, args):
     if args.r_degree is not None:
@@ -245,8 +252,13 @@ def image_distortion(img1, img2, seed, args):
 
 
     if args.noise_factor is not None:
-        img1 = apply_single_distortion(img1, distortion_type = "noise", strength=args.resizedcrop_factor, distortion_seed=0)
-        img2 = apply_single_distortion(img2, distortion_type = "noise", strength=args.resizedcrop_factor, distortion_seed=0)
+        std = args.noise_factor if args.noise_factor is not None else random.uniform(0, 0.1)
+        image1 = to_tensor([image1], norm_type=None)
+        noise = torch.randn(image1.size()) * std
+        image1 = to_pil((image1 + noise).clamp(0, 1), norm_type=None)[0]
+
+        # img1 = apply_single_distortion(img1, distortion_type = "noise", strength=args.resizedcrop_factor, distortion_seed=0)
+        # img2 = apply_single_distortion(img2, distortion_type = "noise", strength=args.resizedcrop_factor, distortion_seed=0)
 
     if args.compression_factor is not None:
         img1 = apply_single_distortion(img1, distortion_type = "compression", strength=args.resizedcrop_factor, distortion_seed=0)
