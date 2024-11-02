@@ -299,15 +299,17 @@ def image_distortion(img1, img2, seed, args):
         img2 = to_tensor([img2], norm_type=None)
         img2 = to_pil((img2 + noise).clamp(0, 1), norm_type=None)[0]
 
-    if args.compression_factor is not None:
-        quality = args.compression_factor if args.compression_factor is not None else random.uniform(90, 10)
-        quality = int(quality)
-        buffered = io.BytesIO()
-        img1.save(buffered, format="JPEG", quality=quality)
-        img1 = img1.open(buffered)
-        buffered = io.BytesIO()
-        img2.save(buffered, format="JPEG", quality=quality)
-        img2 = img2.open(buffered)
+    # if args.compression_factor is not None:
+    #     quality = args.compression_factor if args.compression_factor is not None else random.uniform(90, 10)
+    #     quality = int(quality)
+    #     buffered = io.BytesIO()
+    #     img1.save(buffered, format="JPEG", quality=quality)
+    #     buffered.seek(0)
+    #     img1 = img1.open(buffered)
+    #     buffered = io.BytesIO()
+    #     img2.save(buffered, format="JPEG", quality=quality)
+    #     buffered.seek(0)
+    #     img2 = img2.open(buffered)
 
     return img1, img2
 
