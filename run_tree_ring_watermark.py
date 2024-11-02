@@ -145,6 +145,8 @@ def main(args):
         if args.with_tracking:
         #     if (args.reference_model is not None) and (i < args.max_num_log_image):
                 # log images when we use reference_model
+
+            #        table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric', 'w_noise_vec', 'w_noise_vec_w_perturb', 'wm'])
             table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, current_prompt, no_w_metric, w_metric, 
                            wandb.Image(torch.fft.fftshift(torch.fft.fft2(init_latents_w), dim=(-1, -2)).real.to(torch.float32)), 
                            wandb.Image(torch.fft.fftshift(torch.fft.fft2(reversed_latents_w), dim=(-1, -2)).real.to(torch.float32)), 

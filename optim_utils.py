@@ -210,11 +210,19 @@ def image_distortion(img1, img2, seed, args):
     if args.brightness_factor is not None:
         img1 = transforms.ColorJitter(brightness=args.brightness_factor)(img1)
         img2 = transforms.ColorJitter(brightness=args.brightness_factor)(img2)
+    
+    if args.resizedcrop_factor is not None:
+        scale = args.resizedcrop_factor if args.resizedcrop_factor is not None else random.uniform(1, 0.5)
+        i, j, h, w = T.RandomResizedCrop.get_params(
+            image, scale=(scale, scale), ratio=(1, 1)
+        )
+        img1 = F.resized_crop(img1, i, j, h, w, img1.size)
+        img2 = F.resized_crop(img2, i, j, h, w, img2.size)
 
         ### test more perturbation on tree ring
-    if args.resizedcrop_factor is not None:
-        img1 = apply_single_distortion(img1, distortion_type = "resizedcrop", strength=args.resizedcrop_factor, distortion_seed=0)
-        img2 = apply_single_distortion(img2, distortion_type = "resizedcrop", strength=args.resizedcrop_factor, distortion_seed=0)
+    # if args.resizedcrop_factor is not None:
+    #     img1 = apply_single_distortion(img1, distortion_type = "resizedcrop", strength=args.resizedcrop_factor, distortion_seed=0)
+    #     img2 = apply_single_distortion(img2, distortion_type = "resizedcrop", strength=args.resizedcrop_factor, distortion_seed=0)
 
     if args.erasing_factor is not None:
         img1 = apply_single_distortion(img1, distortion_type = "erasing", strength=args.resizedcrop_factor, distortion_seed=0)
