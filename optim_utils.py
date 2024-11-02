@@ -3,7 +3,7 @@ from torchvision import transforms
 from datasets import load_dataset
 import torchvision.transforms as T
 import torchvision.transforms.functional as F
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageEnhance
 import random
 import numpy as np
 import copy
@@ -303,8 +303,14 @@ def image_distortion(img1, img2, seed, args):
         # img2 = apply_single_distortion(img2, distortion_type = "noise", strength=args.resizedcrop_factor, distortion_seed=0)
 
     if args.compression_factor is not None:
-        img1 = apply_single_distortion(img1, distortion_type = "compression", strength=args.resizedcrop_factor, distortion_seed=0)
-        img2 = apply_single_distortion(img2, distortion_type = "compression", strength=args.resizedcrop_factor, distortion_seed=0)
+        quality = args.compression_factor if args.compression_factor is not None else random.uniform(90, 10)
+        quality = int(quality)
+        buffered = io.BytesIO()
+        img1.save(buffered, format="JPEG", quality=quality)
+        img1 = img1.open(buffered)
+        buffered = io.BytesIO()
+        img2.save(buffered, format="JPEG", quality=quality)
+        img2 = img2.open(buffered)
 
     return img1, img2
 
