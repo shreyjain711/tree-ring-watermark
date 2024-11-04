@@ -26,7 +26,7 @@ def set_exp_name(args):
         'gaussian_blur_r': 'GbF'
     }
     
-    for perturb in ['r_degree', 'crop_scale', 'crop_ratio', 'gaussian_std', 'brightness_factor', 'resizedcrop_factor', 'erasing_factor', 'contrast_factor', 'noise_factor']:
+    for perturb in ['r_degree', 'crop_scale', 'crop_ratio', 'gaussian_std', 'brightness_factor', 'resizedcrop_factor_x', 'resizedcrop_factor_y', 'erasing_factor', 'contrast_factor', 'noise_factor']:
         if eval(f'args.{perturb}') is not None:
             name_strs.append(f"{perturbation_abbr_map[perturb]}{eval(f'args.{perturb}'):.3f}")
 
