@@ -19,7 +19,7 @@ def main(args):
     table = None
     if args.with_tracking:
         wandb.login(key=args.wandb_API_key)
-        if args.run_id is not None:
+        if args.wandb_run_id is not None:
             wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'], id=args.wandb_run_id, resume='must')
         else:
             wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'])
