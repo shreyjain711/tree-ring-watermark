@@ -18,8 +18,11 @@ from exp_utils import *
 def main(args):
     table = None
     if args.with_tracking:
-        wandb.login(key="c7d77f7080d30d032dcac5a88bc6e3ea18058724")
-        wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'])
+        wandb.login(key=args.wandb_API_key)
+        if args.run_id is not None:
+            wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'], id=args.wandb_run_id, resume='must')
+        else:
+            wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'])
         wandb.config.update(args)
         # table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric', 'w_noise_vec', 'w_noise_vec_w_perturb', 'wm'])
         table = wandb.Table(columns=['exp_name', 'noise_vec_fft', 'noise_vec_fft_perturb', 'wm_mask', 'prompt', 'no_w_metric', 'w_metric', 'gen_no_w', 'gen_no_w_auged', 'gen_w', 'gen_w_auged'])
@@ -228,7 +231,9 @@ if __name__ == '__main__':
     parser.add_argument('--erasing_factor', default=None, type=float)
     parser.add_argument('--contrast_factor', default=None, type=float)
     parser.add_argument('--noise_factor', default=None, type=float)
-    parser.add_argument('--compression_factor', default=None, type=float)
+
+    parser.add_argument('--wandb_API_key', default=None, type=str)
+    parser.add_argument('--wandb_run_id', default=None, type=str)
 
     args = parser.parse_args()
 
@@ -236,3 +241,38 @@ if __name__ == '__main__':
         args.test_num_inference_steps = args.num_inference_steps
     
     main(args)
+
+
+### Mid sem testing reports
+# {
+#     'r_degree' : [15, 45, 60, 90, 135, 180],
+#     'jpeg_ratio' : [0.1, 0.2, 0.3, 0.5, 0.8],
+#     'crop_scale' : [0.1, 0.2, 0.3, 0.5, 0.8],
+#     'crop_ratio' : [0.2, 0.5, 1, 2, 5],
+#     'gaussian_blur_r' : [1, 2, 3, 5, 10],
+#     'gaussian_std' : [0.05, 0.1, 0.2, 0.3, 0.5],
+#     'brightness_factor' : [0.5, 0.8, 1.2, 1.5, 2.0],
+#     'contrast_factor' : [0.5, 0.8, 1.2, 1.5, 2.0],
+#     'resizedcrop_factor_x' : [0.2, 0.4, 0.6, 0.8, 1.0],
+#     'resizedcrop_factor_y' : [0.2, 0.4, 0.6, 0.8, 1.0],
+#     'erasing_factor' : [0.1, 0.2, 0.3, 0.4, 0.5],
+#     'noise_factor' : [0.1, 0.2, 0.3, 0.4, 0.5]
+# }
+
+######### use default
+# image_length
+# model_id
+# dataset
+# guidance_scale
+# w_seed
+# w_channel
+# w_pattern
+# w_mask_shape
+# test_num_inference_steps
+# reference_model
+# reference_model_pretrain
+# max_num_log_image
+# gen_seed
+# w_measurement
+# w_injection
+# w_pattern_const
