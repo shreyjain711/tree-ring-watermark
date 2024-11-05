@@ -108,7 +108,7 @@ def main(args):
 
         ### test watermark
         # distortion
-        orig_image_no_w_auged, orig_image_w_auged = orig_image_no_w, orig_image_w # image_distortion(orig_image_no_w, orig_image_w, seed, args)
+        orig_image_no_w_auged, orig_image_w_auged = image_distortion(orig_image_no_w, orig_image_w, seed, args)
 
         # reverse img without watermarking
         img_no_w = transform_img(orig_image_no_w_auged).unsqueeze(0).to(text_embeddings.dtype).to(device)
