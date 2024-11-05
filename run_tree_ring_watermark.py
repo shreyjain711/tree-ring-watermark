@@ -108,7 +108,7 @@ def main(args):
 
         ### test watermark
         # distortion
-        orig_image_no_w_auged, orig_image_w_auged = orig_image_no_w, orig_image_w#image_distortion(orig_image_no_w, orig_image_w, seed, args)
+        orig_image_no_w_auged, orig_image_w_auged = orig_image_no_w, orig_image_w # image_distortion(orig_image_no_w, orig_image_w, seed, args)
 
         # reverse img without watermarking
         img_no_w = transform_img(orig_image_no_w_auged).unsqueeze(0).to(text_embeddings.dtype).to(device)
@@ -208,7 +208,7 @@ if __name__ == '__main__':
 
     # watermark
     parser.add_argument('--w_seed', default=999999, type=int)
-    parser.add_argument('--w_channel', default=-1, type=int) # TODO test what happens on using -1, 0, 1, 2, 
+    parser.add_argument('--w_channel', default=0, type=int) # TODO test what happens on using -1, 0, 1, 2, 
     parser.add_argument('--w_pattern', default='ring')
     parser.add_argument('--w_mask_shape', default='circle')
     parser.add_argument('--w_radius', default=10, type=int)
