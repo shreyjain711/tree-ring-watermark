@@ -108,7 +108,7 @@ def main(args):
 
         ### test watermark
         # distortion
-        orig_image_no_w_auged, orig_image_w_auged = image_distortion(orig_image_no_w, orig_image_w, seed, args)
+        orig_image_no_w_auged, orig_image_w_auged = orig_image_no_w, orig_image_w#image_distortion(orig_image_no_w, orig_image_w, seed, args)
 
         # reverse img without watermarking
         img_no_w = transform_img(orig_image_no_w_auged).unsqueeze(0).to(text_embeddings.dtype).to(device)
@@ -244,20 +244,20 @@ if __name__ == '__main__':
 
 
 ### Mid sem testing reports
-# {
-#     'r_degree' : [15, 45, 60, 90, 135, 180],
-#     'jpeg_ratio' : [0.1, 0.2, 0.3, 0.5, 0.8],
-#     'crop_scale' : [0.1, 0.2, 0.3, 0.5, 0.8],
-#     'crop_ratio' : [0.2, 0.5, 1, 2, 5],
-#     'gaussian_blur_r' : [1, 2, 3, 5, 10],
-#     'gaussian_std' : [0.05, 0.1, 0.2, 0.3, 0.5],
-#     'brightness_factor' : [0.5, 0.8, 1.2, 1.5, 2.0],
-#     'contrast_factor' : [0.5, 0.8, 1.2, 1.5, 2.0],
-#     'resizedcrop_factor_x' : [0.2, 0.4, 0.6, 0.8, 1.0],
-#     'resizedcrop_factor_y' : [0.2, 0.4, 0.6, 0.8, 1.0],
-#     'erasing_factor' : [0.1, 0.2, 0.3, 0.4, 0.5],
-#     'noise_factor' : [0.1, 0.2, 0.3, 0.4, 0.5]
-# }
+{
+    'r_degree' : [15, 45, 60, 90, 135, 180],
+    'jpeg_ratio' : [0.1, 0.2, 0.3, 0.5, 0.8],
+    'crop_scale' : [0.1, 0.2, 0.3, 0.5, 0.8],
+    'crop_ratio' : [0.2, 0.5, 1, 2, 5],
+    'gaussian_blur_r' : [1, 2, 3, 5, 10],
+    'gaussian_std' : [0.05, 0.1, 0.2, 0.3, 0.5],
+    'brightness_factor' : [0.5, 0.8, 1.2, 1.5, 2.0],
+    'contrast_factor' : [0.5, 0.8, 1.2, 1.5, 2.0],
+    'resizedcrop_factor_x' : [0.2, 0.4, 0.6, 0.8, 1.0],
+    'resizedcrop_factor_y' : [0.2, 0.4, 0.6, 0.8, 1.0],
+    'erasing_factor' : [0.1, 0.2, 0.3, 0.4, 0.5],
+    'noise_factor' : [0.1, 0.2, 0.3, 0.4, 0.5]
+}
 
 ######### use default
 # image_length
