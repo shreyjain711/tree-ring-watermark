@@ -10,26 +10,18 @@ import torch
 from inverse_stable_diffusion import InversableStableDiffusionPipeline
 from diffusers import DPMSolverMultistepScheduler
 import open_clip
-from optim_utils import *
+from optim_utils_orig import *
 from io_utils import *
-from exp_utils import *
 
 
 def main(args):
     table = None
     if args.with_tracking:
-        wandb.login(key=args.wandb_API_key)
-        if args.wandb_run_id is not None:
-            wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'], id=args.wandb_run_id, resume='must')
-        else:
-            wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'])
+        wandb.login(key='c7d77f7080d30d032dcac5a88bc6e3ea18058724')
+        wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'])
         wandb.config.update(args)
-        # table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric', 'w_noise_vec', 'w_noise_vec_w_perturb', 'wm'])
-        table = wandb.Table(columns=['exp_name', 'noise_vec_fft', 'noise_vec_fft_perturb', 'wm_mask', 'prompt', 'no_w_metric', 'w_metric', 'gen_no_w', 'gen_no_w_auged', 'gen_w', 'gen_w_auged'])
+        table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric'])
     
-
-    exp_name = set_exp_name(args)
-
     # load diffusion model
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
@@ -65,7 +57,7 @@ def main(args):
     for i in tqdm(range(args.start, args.end)):
         seed = i + args.gen_seed
         
-        current_prompt = dataset[i][prompt_key] #if args.end!=1 else "white square background and a black square inside it center aligned and covering 80% of the area"
+        current_prompt = dataset[i][prompt_key]
         
         ### generation
         # generation without watermarking
@@ -151,20 +143,12 @@ def main(args):
         w_metrics.append(-w_metric)
 
         if args.with_tracking:
-            #table: 'exp_name', 'noise_vec_fft', 'noise_vec_fft_perturb', 'wm_mask', 'prompt', 'no_w_metric', 'w_metric', 'gen_no_w', 'gen_no_w_auged', 'gen_w', 'gen_w_auged'
-            noise_vec_fft_img, noise_vec_fft_perturb_img = wandb.Image(noise_vec_to_fft_real(init_latents_w)), wandb.Image(noise_vec_to_fft_real(reversed_latents_w))
-            wm_mask_img = wandb.Image(watermarking_mask.to(torch.float32))
+            if (args.reference_model is not None) and (i < args.max_num_log_image):
+                # log images when we use reference_model
+                table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, current_prompt, no_w_metric, w_metric)
+            else:
+                table.add_data(None, w_no_sim, None, w_sim, current_prompt, no_w_metric, w_metric)
 
-            gen_no_w_img, gen_no_w_auged_img = wandb.Image(orig_image_no_w), wandb.Image(orig_image_no_w_auged)
-            gen_w_img, gen_w_auged_img = wandb.Image(orig_image_w), wandb.Image(orig_image_w_auged)
-
-            table.add_data(exp_name, 
-                           noise_vec_fft_img, noise_vec_fft_perturb_img, wm_mask_img, 
-                           current_prompt, 
-                           no_w_metric, w_metric, 
-                           gen_no_w_img, gen_no_w_auged_img, 
-                           gen_w_img, gen_w_auged_img)
-            
             clip_scores.append(w_no_sim)
             clip_scores_w.append(w_sim)
 
@@ -208,14 +192,13 @@ if __name__ == '__main__':
 
     # watermark
     parser.add_argument('--w_seed', default=999999, type=int)
-    parser.add_argument('--w_channel', default=0, type=int) # TODO test what happens on using -1, 0, 1, 2, 
-    parser.add_argument('--w_pattern', default='ring')
+    parser.add_argument('--w_channel', default=0, type=int)
+    parser.add_argument('--w_pattern', default='rand')
     parser.add_argument('--w_mask_shape', default='circle')
     parser.add_argument('--w_radius', default=10, type=int)
     parser.add_argument('--w_measurement', default='l1_complex')
     parser.add_argument('--w_injection', default='complex')
     parser.add_argument('--w_pattern_const', default=0, type=float)
-    parser.add_argument('--w_radius_incr', default=1, type=int)
     
     # for image distortion
     parser.add_argument('--r_degree', default=None, type=float)
@@ -226,14 +209,6 @@ if __name__ == '__main__':
     parser.add_argument('--gaussian_std', default=None, type=float)
     parser.add_argument('--brightness_factor', default=None, type=float)
     parser.add_argument('--rand_aug', default=0, type=int)
-    parser.add_argument('--resizedcrop_factor_x', default=None, type=float)
-    parser.add_argument('--resizedcrop_factor_y', default=None, type=float)
-    parser.add_argument('--erasing_factor', default=None, type=float)
-    parser.add_argument('--contrast_factor', default=None, type=float)
-    parser.add_argument('--noise_factor', default=None, type=float)
-
-    parser.add_argument('--wandb_API_key', default=None, type=str)
-    parser.add_argument('--wandb_run_id', default=None, type=str)
 
     args = parser.parse_args()
 
@@ -241,38 +216,3 @@ if __name__ == '__main__':
         args.test_num_inference_steps = args.num_inference_steps
     
     main(args)
-
-
-### Mid sem testing reports
-{
-    'r_degree' : [15, 45, 60, 90, 135, 180],
-    'jpeg_ratio' : [0.1, 0.2, 0.3, 0.5, 0.8],
-    'crop_scale' : [0.1, 0.2, 0.3, 0.5, 0.8],
-    'crop_ratio' : [0.2, 0.5, 1, 2, 5],
-    'gaussian_blur_r' : [1, 2, 3, 5, 10],
-    'gaussian_std' : [0.05, 0.1, 0.2, 0.3, 0.5],
-    'brightness_factor' : [0.5, 0.8, 1.2, 1.5, 2.0],
-    'contrast_factor' : [0.5, 0.8, 1.2, 1.5, 2.0],
-    'resizedcrop_factor_x' : [0.2, 0.4, 0.6, 0.8, 1.0],
-    'resizedcrop_factor_y' : [0.2, 0.4, 0.6, 0.8, 1.0],
-    'erasing_factor' : [0.1, 0.2, 0.3, 0.4, 0.5],
-    'noise_factor' : [0.1, 0.2, 0.3, 0.4, 0.5]
-}
-
-######### use default
-# image_length
-# model_id
-# dataset
-# guidance_scale
-# w_seed
-# w_channel
-# w_pattern
-# w_mask_shape
-# test_num_inference_steps
-# reference_model
-# reference_model_pretrain
-# max_num_log_image
-# gen_seed
-# w_measurement
-# w_injection
-# w_pattern_const

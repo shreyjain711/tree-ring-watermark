@@ -1,16 +1,14 @@
 import torch
 from torchvision import transforms
 from datasets import load_dataset
-import torchvision.transforms as T
-import torchvision.transforms.functional as F
-from PIL import Image, ImageFilter, ImageEnhance
+
+from PIL import Image, ImageFilter
 import random
 import numpy as np
 import copy
 from typing import Any, Mapping
 import json
 import scipy
-import io
 
 
 def read_json(filename: str) -> Mapping[str, Any]:
@@ -47,188 +45,6 @@ def latents_to_imgs(pipe, latents):
     return x
 
 
-# distortion_strength_paras = dict(
-#     resizedcrop=(1, 0.5),
-#     erasing=(0, 0.25),
-#     contrast=(1, 2),
-#     noise=(0, 0.1),
-#     compression=(90, 10),
-# )
-
-
-# def relative_strength_to_absolute(strength, distortion_type):
-#     assert 0 <= relative_strength <= 1
-#     strength = (
-#         strength
-#         * (
-#             distortion_strength_paras[distortion_type][1]
-#             - distortion_strength_paras[distortion_type][0]
-#         )
-#         + distortion_strength_paras[distortion_type][0]
-#     )
-#     strength = max(strength, min(*distortion_strength_paras[distortion_type]))
-#     strength = min(strength, max(*distortion_strength_paras[distortion_type]))
-#     return strength
-
-
-# def apply_distortion(
-#     images,
-#     distortion_type,
-#     strength=None,
-#     distortion_seed=0,
-#     same_operation=False,
-#     relative_strength=True,
-#     return_image=True,
-# ):
-#     # Convert images to PIL images if they are tensors
-#     if not isinstance(images[0], Image.Image):
-#         images = to_pil(images)
-#     # Check if strength is relative and convert if needed
-#     if relative_strength:
-#         strength = relative_strength_to_absolute(strength, distortion_type)
-#     # Apply distortions
-#     distorted_images = []
-#     seed = distortion_seed
-#     for image in images:
-#         distorted_images.append(
-#             apply_single_distortion(
-#                 image, distortion_type, strength, distortion_seed=seed
-#             )
-#         )
-#         # If not applying the same distortion, increment the seed
-#         if not same_operation:
-#             seed += 1
-#     # Convert to tensors if needed
-#     if not return_image:
-#         distorted_images = to_tensor(distorted_images)
-#     return distorted_images
-
-
-# def apply_single_distortion(image, distortion_type, strength=None, distortion_seed=0):
-#     # Accept a single image
-#     assert isinstance(image, Image.Image)
-#     # Set the random seed for the distortion if given
-#     set_random_seed(distortion_seed)
-#     # Assert distortion type is valid
-#     assert distortion_type in distortion_strength_paras.keys()
-#     # Assert strength is in the correct range
-#     if strength is not None:
-#         assert (
-#             min(*distortion_strength_paras[distortion_type])
-#             <= strength
-#             <= max(*distortion_strength_paras[distortion_type])
-#         )
-
-#     # Apply the distortion
-#     if distortion_type == "resizedcrop":
-#         scale = (
-#             strength
-#             if strength is not None
-#             else random.uniform(*distortion_strength_paras["resizedcrop"])
-#         )
-#         i, j, h, w = T.RandomResizedCrop.get_params(
-#             image, scale=(scale, scale), ratio=(1, 1)
-#         )
-#         distorted_image = F.resized_crop(image, i, j, h, w, image.size)
-
-#     elif distortion_type == "erasing":
-#         scale = (
-#             strength
-#             if strength is not None
-#             else random.uniform(*distortion_strength_paras["erasing"])
-#         )
-#         image = to_tensor([image], norm_type=None)
-#         i, j, h, w, v = T.RandomErasing.get_params(
-#             image, scale=(scale, scale), ratio=(1, 1), value=[0]
-#         )
-#         distorted_image = F.erase(image, i, j, h, w, v)
-#         distorted_image = to_pil(distorted_image, norm_type=None)[0]
-
-#     elif distortion_type == "contrast":
-#         factor = (
-#             strength
-#             if strength is not None
-#             else random.uniform(*distortion_strength_paras["contrast"])
-#         )
-#         enhancer = ImageEnhance.Contrast(image)
-#         distorted_image = enhancer.enhance(factor)
-
-#     elif distortion_type == "noise":
-#         std = (
-#             strength
-#             if strength is not None
-#             else random.uniform(*distortion_strength_paras["noise"])
-#         )
-#         image = to_tensor([image], norm_type=None)
-#         noise = torch.randn(image.size()) * std
-#         distorted_image = to_pil((image + noise).clamp(0, 1), norm_type=None)[0]
-
-#     elif distortion_type == "compression":
-#         quality = (
-#             strength
-#             if strength is not None
-#             else random.uniform(*distortion_strength_paras["compression"])
-#         )
-#         quality = int(quality)
-#         buffered = io.BytesIO()
-#         image.save(buffered, format="JPEG", quality=quality)
-#         distorted_image = Image.open(buffered)
-
-#     else:
-#         assert False
-
-#     return distorted_image
-def normalize_tensor(images, norm_type):
-    assert norm_type in ["imagenet", "naive"]
-    # Two possible normalization conventions
-    if norm_type == "imagenet":
-        mean = [0.485, 0.456, 0.406]
-        std = [0.229, 0.224, 0.225]
-        normalize = transforms.Normalize(mean, std)
-    elif norm_type == "naive":
-        mean = [0.5, 0.5, 0.5]
-        std = [0.5, 0.5, 0.5]
-        normalize = transforms.Normalize(mean, std)
-    else:
-        assert False
-    return torch.stack([normalize(image) for image in images])
-
-def unnormalize_tensor(images, norm_type):
-    assert norm_type in ["imagenet", "naive"]
-    # Two possible normalization conventions
-    if norm_type == "imagenet":
-        mean = [0.485, 0.456, 0.406]
-        std = [0.229, 0.224, 0.225]
-        unnormalize = transforms.Normalize(
-            (-mean[0] / std[0], -mean[1] / std[1], -mean[2] / std[2]),
-            (1 / std[0], 1 / std[1], 1 / std[2]),
-        )
-    elif norm_type == "naive":
-        mean = [0.5, 0.5, 0.5]
-        std = [0.5, 0.5, 0.5]
-        unnormalize = transforms.Normalize(
-            (-mean[0] / std[0], -mean[1] / std[1], -mean[2] / std[2]),
-            (1 / std[0], 1 / std[1], 1 / std[2]),
-        )
-    else:
-        assert False
-    return torch.stack([unnormalize(image) for image in images])
-
-def to_tensor(images, norm_type="naive"):
-    assert isinstance(images, list) and all(
-        [isinstance(image, Image.Image) for image in images]
-    )
-    images = torch.stack([transforms.ToTensor()(image) for image in images])
-    if norm_type is not None:
-        images = normalize_tensor(images, norm_type)
-    return images
-
-def to_pil(images, norm_type="naive"):
-    assert isinstance(images, torch.Tensor)
-    if norm_type is not None:
-        images = unnormalize_tensor(images, norm_type).clamp(0, 1)
-    return [transforms.ToPILImage()(image) for image in images.cpu()]
-
 def image_distortion(img1, img2, seed, args):
     if args.r_degree is not None:
         img1 = transforms.RandomRotation((args.r_degree, args.r_degree))(img1)
@@ -260,56 +76,6 @@ def image_distortion(img1, img2, seed, args):
     if args.brightness_factor is not None:
         img1 = transforms.ColorJitter(brightness=args.brightness_factor)(img1)
         img2 = transforms.ColorJitter(brightness=args.brightness_factor)(img2)
-    
-    ### test more perturbation on tree ring
-    if args.resizedcrop_factor_x and args.resizedcrop_factor_y is not None:
-        scale_x = args.resizedcrop_factor_x if args.resizedcrop_factor_x is not None else random.uniform(1, 0.5)
-        scale_y = args.resizedcrop_factor_y if args.resizedcrop_factor_y is not None else random.uniform(1, 0.5)
-        i, j, h, w = T.RandomResizedCrop.get_params(
-            img1, scale=(scale_x, scale_y), ratio=(1, 1)
-        )
-        img1 = F.resized_crop(img1, i, j, h, w, img1.size)
-        img2 = F.resized_crop(img2, i, j, h, w, img2.size)
-
-    if args.erasing_factor is not None:
-        scale = args.erasing_factor if args.erasing_factor is not None else random.uniform(0, 0.25)
-        img1 = to_tensor([img1], norm_type=None)
-        img2 = to_tensor([img2], norm_type=None)
-        i, j, h, w, v = T.RandomErasing.get_params(
-            img1, scale=(scale, scale), ratio=(1, 1), value=[0]
-        )
-        img1 = F.erase(img1, i, j, h, w, v)
-        img1 = to_pil(img1, norm_type=None)[0]
-        img2 = F.erase(img2, i, j, h, w, v)
-        img2 = to_pil(img2, norm_type=None)[0]
-
-    if args.contrast_factor is not None:
-        factor = args.contrast_factor if args.contrast_factor is not None else random.uniform(1, 2)
-        enhancer = ImageEnhance.Contrast(img1)
-        img1 = enhancer.enhance(factor)
-        enhancer = ImageEnhance.Contrast(img2)
-        img2 = enhancer.enhance(factor)
-
-
-    if args.noise_factor is not None:
-        std = args.noise_factor if args.noise_factor is not None else random.uniform(0, 0.1)
-        img1 = to_tensor([img1], norm_type=None)
-        noise = torch.randn(img1.size()) * std
-        img1 = to_pil((img1 + noise).clamp(0, 1), norm_type=None)[0]
-        img2 = to_tensor([img2], norm_type=None)
-        img2 = to_pil((img2 + noise).clamp(0, 1), norm_type=None)[0]
-
-    # if args.compression_factor is not None:
-    #     quality = args.compression_factor if args.compression_factor is not None else random.uniform(90, 10)
-    #     quality = int(quality)
-    #     buffered = io.BytesIO()
-    #     img1.save(buffered, format="JPEG", quality=quality)
-    #     buffered.seek(0)
-    #     img1 = img1.open(buffered)
-    #     buffered = io.BytesIO()
-    #     img2.save(buffered, format="JPEG", quality=quality)
-    #     buffered.seek(0)
-    #     img2 = img2.open(buffered)
 
     return img1, img2
 
@@ -395,7 +161,7 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
         gt_patch = gt_init
 
         gt_patch_tmp = copy.deepcopy(gt_patch)
-        for i in range(args.w_radius, 0, -args.w_radius_incr):
+        for i in range(args.w_radius, 0, -1):
             tmp_mask = circle_mask(gt_init.shape[-1], r=i)
             tmp_mask = torch.tensor(tmp_mask).to(device)
             
