@@ -17,6 +17,7 @@ from io_utils import *
 def main(args):
     table = None
     if args.with_tracking:
+        wandb.login(key='c7d77f7080d30d032dcac5a88bc6e3ea18058724')
         wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'])
         wandb.config.update(args)
         table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric'])
