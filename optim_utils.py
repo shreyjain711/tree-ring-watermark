@@ -262,7 +262,8 @@ def image_distortion(img1, img2, seed, args):
         img2 = transforms.ColorJitter(brightness=args.brightness_factor)(img2)
     
     ### test more perturbation on tree ring
-    if args.resizedcrop_factor_x and args.resizedcrop_factor_y is not None:
+    if args.resizedcrop_factor_x is not None and args.resizedcrop_factor_y is not None:
+        print("DBG")
         scale_x = args.resizedcrop_factor_x if args.resizedcrop_factor_x is not None else random.uniform(1, 0.5)
         scale_y = args.resizedcrop_factor_y if args.resizedcrop_factor_y is not None else random.uniform(1, 0.5)
         i, j, h, w = T.RandomResizedCrop.get_params(
@@ -272,7 +273,7 @@ def image_distortion(img1, img2, seed, args):
         img2 = F.resized_crop(img2, i, j, h, w, img2.size)
 
     if args.erasing_factor is not None:
-        scale = args.erasing_factor if args.erasing_factor is not None else random.uniform(0, 0.25)
+        scale = args.erasing_factor if args.erasing_factor is not None else randtom.uniform(0, 0.25)
         img1 = to_tensor([img1], norm_type=None)
         img2 = to_tensor([img2], norm_type=None)
         i, j, h, w, v = T.RandomErasing.get_params(
