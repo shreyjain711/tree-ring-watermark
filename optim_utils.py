@@ -357,17 +357,46 @@ def circle_mask(size=64, r=10, x_offset=0, y_offset=0):
 
     return ((x - x0)**2 + (y-y0)**2)<= r**2
 
+def get_centered_tree_rings_mask_with_center(size, r):
+    """
+    Generates a mask with circular regions near the center and one at the center.
+    
+    Parameters:
+    - size (int): Size of the square mask.
+    - r (int): Radius of the tree rings.
+    
+    Returns:
+    - np.ndarray: Mask with tree rings near the center and at the center.
+    """
+    mask = np.zeros((size, size), dtype=bool)
+    
+    # Adjust offsets to place the rings closer to the center
+    offset = size // 3  # Place rings at 1/3 and 2/3 of the size
+    centered_offsets = [
+        (offset, offset),            # Top-left (closer to center)
+        (offset, size - offset),     # Top-right (closer to center)
+        (size - offset, offset),     # Bottom-left (closer to center)
+        (size - offset, size - offset),  # Bottom-right (closer to center)
+        (size // 2, size // 2)       # Center
+    ]
+    
+    for x_offset, y_offset in centered_offsets:
+        mask |= circle_mask(size, r=r, x_offset=x_offset - size // 2, y_offset=y_offset - size // 2)
+    
+    return mask
+
 
 def get_watermarking_mask(init_latents_w, args, device):
     watermarking_mask = torch.zeros(init_latents_w.shape, dtype=torch.bool).to(device)
 
     if args.w_mask_shape == 'circle':
-        np_mask_center = circle_mask(init_latents_w.shape[-1], r=args.w_radius)
-        np_mask_centerupright = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = init_latents_w.shape[-1]//3,y_offset = init_latents_w.shape[-1]//3)
-        np_mask_centerupleft = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = -init_latents_w.shape[-1]//3,y_offset = init_latents_w.shape[-1]//3)
-        np_mask_centerdownright = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = init_latents_w.shape[-1]//3,y_offset = -init_latents_w.shape[-1]//3)
-        np_mask_centerdownleft = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = -init_latents_w.shape[-1]//3,y_offset = -init_latents_w.shape[-1]//3)
-        np_mask= np_mask_center | np_mask_centerupright | np_mask_centerupleft | np_mask_centerdownright | np_mask_centerdownleft
+        np_mask = circle_mask(init_latents_w.shape[-1], r=args.w_radius)
+        # the first experiment on four rings: (failed with only showing the center one)
+        # np_mask_centerupright = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = init_latents_w.shape[-1]//3,y_offset = init_latents_w.shape[-1]//3)
+        # np_mask_centerupleft = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = -init_latents_w.shape[-1]//3,y_offset = init_latents_w.shape[-1]//3)
+        # np_mask_centerdownright = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = init_latents_w.shape[-1]//3,y_offset = -init_latents_w.shape[-1]//3)
+        # np_mask_centerdownleft = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = -init_latents_w.shape[-1]//3,y_offset = -init_latents_w.shape[-1]//3)
+        # np_mask= np_mask_center | np_mask_centerupright | np_mask_centerupleft | np_mask_centerdownright | np_mask_centerdownleft
         torch_mask = torch.tensor(np_mask).to(device)
 
         if args.w_channel == -1:
@@ -375,6 +404,11 @@ def get_watermarking_mask(init_latents_w, args, device):
             watermarking_mask[:, :] = torch_mask
         else:
             watermarking_mask[:, args.w_channel] = torch_mask
+    elif args.w_mask_shape == 'centered_with_center':
+        np_mask = get_centered_tree_rings_mask_with_center(init_latents_w.shape[-1], r=args.w_radius)
+        torch_mask = torch.tensor(np_mask).to(device)
+        watermarking_mask[:, args.w_channel] = torch_mask
+        
     elif args.w_mask_shape == 'square':
         anchor_p = init_latents_w.shape[-1] // 2
         if args.w_channel == -1:
