@@ -391,13 +391,13 @@ def get_watermarking_mask(init_latents_w, args, device):
     
 
     if args.w_mask_shape == 'circle':
-        np_mask_center = circle_mask(init_latents_w.shape[-1], r=args.w_radius)
+        np_mask = circle_mask(init_latents_w.shape[-1], r=args.w_radius)
         # the first experiment on four rings: (failed with only showing the center one)
-        np_mask_centerupright = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = init_latents_w.shape[-1]//3,y_offset = init_latents_w.shape[-1]//3)
-        np_mask_centerupleft = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = -init_latents_w.shape[-1]//3,y_offset = init_latents_w.shape[-1]//3)
-        np_mask_centerdownright = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = init_latents_w.shape[-1]//3,y_offset = -init_latents_w.shape[-1]//3)
-        np_mask_centerdownleft = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = -10,y_offset = -10)
-        np_mask= np_mask_centerdownleft # | np_mask_centerupright | np_mask_centerupleft | np_mask_centerdownright | np_mask_centerdownleft
+        # np_mask_centerupright = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = init_latents_w.shape[-1]//3,y_offset = init_latents_w.shape[-1]//3)
+        # np_mask_centerupleft = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = -init_latents_w.shape[-1]//3,y_offset = init_latents_w.shape[-1]//3)
+        # np_mask_centerdownright = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = init_latents_w.shape[-1]//3,y_offset = -init_latents_w.shape[-1]//3)
+        # np_mask_centerdownleft = circle_mask(init_latents_w.shape[-1], r=args.w_radius,x_offset = -10,y_offset = -10)
+        # np_mask= np_mask_centerdownleft # | np_mask_centerupright | np_mask_centerupleft | np_mask_centerdownright | np_mask_centerdownleft
         torch_mask = torch.tensor(np_mask).to(device)
 
         if args.w_channel == -1:
@@ -458,12 +458,22 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
         gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2))
 
         gt_patch_tmp = copy.deepcopy(gt_patch)
+        #circle watermark
         for i in range(args.w_radius, 0, -1):
             tmp_mask = circle_mask(gt_init.shape[-1], r=i)
             tmp_mask = torch.tensor(tmp_mask).to(device)
             
             for j in range(gt_patch.shape[1]):
                 gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
+        #left right
+        offset_init = 15
+        for i in range(args.w_radius, 0, -1):
+            tmp_mask = circle_mask(gt_init.shape[-1], r=i, x_offset= offset_init, y_offset=offset_init)
+            tmp_mask = torch.tensor(tmp_mask).to(device)
+            
+            for j in range(gt_patch.shape[1]):
+                gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
+        #end of the left right exp
 
     return gt_patch
 
