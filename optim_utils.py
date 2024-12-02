@@ -436,39 +436,39 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
         gt_patch = gt_init
             
         gt_patch_tmp = copy.deepcopy(gt_patch)
-        # Define offsets for the four corners
-        H, W = gt_init.shape[-2:]  # Height and width of the image
-        corner_offsets = [
-            (0, 0),  # Top-left
-            (0, W),  # Top-right
-            (H, 0),  # Bottom-left
-            (H, W),  # Bottom-right
-        ]
-        # Radius for the rings
-        ring_radius = args.w_radius
+        # # Define offsets for the four corners
+        # H, W = gt_init.shape[-2:]  # Height and width of the image
+        # corner_offsets = [
+        #     (0, 0),  # Top-left
+        #     (0, W),  # Top-right
+        #     (H, 0),  # Bottom-left
+        #     (H, W),  # Bottom-right
+        # ]
+        # # Radius for the rings
+        # ring_radius = args.w_radius
         
-        for x_offset, y_offset in corner_offsets:
-            # Generate a mask for the ring at the current corner
-            ring_mask = circle_mask(
-                size=max(H, W),
-                r=ring_radius,
-                x_offset=x_offset - ring_radius // 2,
-                y_offset=y_offset - ring_radius // 2,
-            )
-            # Convert to PyTorch tensor
-            ring_mask = torch.tensor(ring_mask, dtype=torch.bool).to(device)
+        # for x_offset, y_offset in corner_offsets:
+        #     # Generate a mask for the ring at the current corner
+        #     ring_mask = circle_mask(
+        #         size=max(H, W),
+        #         r=ring_radius,
+        #         x_offset=x_offset - ring_radius // 2,
+        #         y_offset=y_offset - ring_radius // 2,
+        #     )
+        #     # Convert to PyTorch tensor
+        #     ring_mask = torch.tensor(ring_mask, dtype=torch.bool).to(device)
 
-            # Apply the ring mask to the patch
-            for j in range(gt_patch.shape[1]):
-                gt_patch[:, j, ring_mask] = gt_patch_tmp[0, j, 0, ring_radius].item()
-
-        
-        # for i in range(args.w_radius, 0, -args.w_radius_incr):
-        #     tmp_mask = circle_mask(gt_init.shape[-1], r=i)
-        #     tmp_mask = torch.tensor(tmp_mask).to(device)
-            
+        #     # Apply the ring mask to the patch
         #     for j in range(gt_patch.shape[1]):
-        #         gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
+        #         gt_patch[:, j, ring_mask] = gt_patch_tmp[0, j, 0, ring_radius].item()
+
+        
+        for i in range(args.w_radius, 0, -args.w_radius_incr):
+            tmp_mask = circle_mask(gt_init.shape[-1], r=i)
+            tmp_mask = torch.tensor(tmp_mask).to(device)
+            
+            for j in range(gt_patch.shape[1]):
+                gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
     elif 'seed_zeros' in args.w_pattern:
         gt_patch = gt_init * 0
     elif 'seed_rand' in args.w_pattern:
@@ -484,36 +484,36 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
     elif 'ring' in args.w_pattern:
         gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2))
 
-        # Adding four rings in four corners
-        H, W = gt_init.shape[-2:]
-        corner_offsets = [
-            (0, 0),  # Top-left
-            (0, W),  # Top-right
-            (H, 0),  # Bottom-left
-            (H, W),  # Bottom-right
-        ]
-        ring_radius = args.w_radius
+        # # Adding four rings in four corners
+        # H, W = gt_init.shape[-2:]
+        # corner_offsets = [
+        #     (0, 0),  # Top-left
+        #     (0, W),  # Top-right
+        #     (H, 0),  # Bottom-left
+        #     (H, W),  # Bottom-right
+        # ]
+        # ring_radius = args.w_radius
 
-        for x_offset, y_offset in corner_offsets:
-            ring_mask = circle_mask(
-                size=max(H, W),
-                r=ring_radius,
-                x_offset=x_offset - ring_radius // 2,
-                y_offset=y_offset - ring_radius // 2,
-            )
+        # for x_offset, y_offset in corner_offsets:
+        #     ring_mask = circle_mask(
+        #         size=max(H, W),
+        #         r=ring_radius,
+        #         x_offset=x_offset - ring_radius // 2,
+        #         y_offset=y_offset - ring_radius // 2,
+        #     )
 
-            ring_mask = torch.tensor(ring_mask, dtype=torch.bool).to(device)
-            gt_patch[ring_mask] = gt_patch[ring_mask].mean()
+        #     ring_mask = torch.tensor(ring_mask, dtype=torch.bool).to(device)
+        #     gt_patch[ring_mask] = gt_patch[ring_mask].mean()
 
 
-        # gt_patch_tmp = copy.deepcopy(gt_patch)
-        # #circle watermark
-        # for i in range(args.w_radius, 0, -1):
-        #     tmp_mask = circle_mask(gt_init.shape[-1], r=i)
-        #     tmp_mask = torch.tensor(tmp_mask).to(device)
+        gt_patch_tmp = copy.deepcopy(gt_patch)
+        #circle watermark
+        for i in range(args.w_radius, 0, -1):
+            tmp_mask = circle_mask(gt_init.shape[-1], r=i)
+            tmp_mask = torch.tensor(tmp_mask).to(device)
             
-        #     for j in range(gt_patch.shape[1]):
-        #         gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
+            for j in range(gt_patch.shape[1]):
+                gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
         # #left right
         # offset_init = 15
         # for i in range(args.w_radius, 0, -1):
