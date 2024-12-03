@@ -122,7 +122,7 @@ def get_dataset(args):
 
 #     return ((x - x0)**2 + (y-y0)**2)<= r**2
 
-def circle_mask(size=64, r = 10, offsets = [(0,0),(10,-10),(10,10),(-10,-10),(-10,10)] ):
+def circle_mask(size=64, r = 10, offsets = [(0,0),(12,-12),(12,12),(-12,-12),(-12,12)] ):
   #  print("the size feed in circle mask:", size)
     mask = np.zeros((size, size), dtype=bool)
     x0 = y0 = size // 2
