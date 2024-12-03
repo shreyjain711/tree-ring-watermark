@@ -82,12 +82,12 @@ def main(args):
             )
         orig_image_no_w = outputs_no_w.images[0]
         
-        # # generation with watermarking
-        # if init_latents_no_w is None:
-        #     set_random_seed(seed)
-        #     init_latents_w = pipe.get_random_latents()
-        # else:
-        #     init_latents_w = copy.deepcopy(init_latents_no_w)
+        # generation with watermarking
+        if init_latents_no_w is None:
+            set_random_seed(seed)
+            init_latents_w = pipe.get_random_latents()
+        else:
+            init_latents_w = copy.deepcopy(init_latents_no_w)
 
 
         # # Apply multiple watermarks
