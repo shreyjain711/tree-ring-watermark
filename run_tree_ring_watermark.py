@@ -101,8 +101,8 @@ def main(args):
             (3 * H // 4, 3 * W // 4) # Bottom-right
         ]
     
-        for i in range(num_watermarks):
-            print(f"Applying watermark {i + 1}/{num_watermarks} at position {watermark_positions[i]}")
+        for i in range(4):
+            print(f"Applying watermark {i + 1}/4 at position {watermark_positions[i]}")
     
             # Generate a circular mask for this watermark
             x_offset, y_offset = watermark_positions[i]
