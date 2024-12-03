@@ -526,6 +526,51 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
 
     return gt_patch
 
+def overlay_multiple_watermarks(pipe, init_latents_w, args, device, num_watermarks=4):
+    """
+    Overlays multiple watermarks onto the same latent space.
+    
+    Args:
+        pipe: The Stable Diffusion pipeline.
+        init_latents_w: Initial latent space to modify.
+        args: Arguments containing watermark configuration.
+        device: The device to use (CPU or CUDA).
+        num_watermarks: Number of watermarks to overlay.
+    
+    Returns:
+        init_latents_w: The modified latent space with overlaid watermarks.
+    """
+    # Define positions for multiple watermarks
+    H, W = init_latents_w.shape[-2:]  # Height and width of the latent space
+    watermark_positions = [
+        (H // 4, W // 4),        # Top-left
+        (H // 4, 3 * W // 4),    # Top-right
+        (3 * H // 4, W // 4),    # Bottom-left
+        (3 * H // 4, 3 * W // 4) # Bottom-right
+    ]
+
+    for i in range(num_watermarks):
+        print(f"Applying watermark {i + 1}/{num_watermarks} at position {watermark_positions[i]}")
+
+        # Generate a circular mask for this watermark
+        x_offset, y_offset = watermark_positions[i]
+        watermark_mask = circle_mask(
+            size=max(H, W),
+            r=args.w_radius,
+            x_offset=x_offset - H // 2,
+            y_offset=y_offset - W // 2
+        )
+        watermark_mask = torch.tensor(watermark_mask, dtype=torch.bool).to(device)
+
+        # Generate the corresponding watermark pattern
+        watermark_patch = get_watermarking_pattern(pipe, args, device)
+
+        # Inject the watermark into the latent space
+        init_latents_w = inject_watermark(init_latents_w, watermark_mask, watermark_patch, args)
+
+    return init_latents_w
+
+
 
 def inject_watermark(init_latents_w, watermarking_mask, gt_patch, args):
     init_latents_w_fft = torch.fft.fftshift(torch.fft.fft2(init_latents_w), dim=(-1, -2))
