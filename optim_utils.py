@@ -347,15 +347,29 @@ def get_dataset(args):
     return dataset, prompt_key
 
 
-def circle_mask(size=64, r=10, x_offset=0, y_offset=0):
-    # reference: https://stackoverflow.com/questions/69687798/generating-a-soft-circluar-mask-using-numpy-python-3
+# def circle_mask(size=64, r=10, x_offset=0, y_offset=0):
+#     # reference: https://stackoverflow.com/questions/69687798/generating-a-soft-circluar-mask-using-numpy-python-3
+#     x0 = y0 = size // 2
+#     x0 += x_offset
+#     y0 += y_offset
+#     y, x = np.ogrid[:size, :size]
+#     y = y[::-1]
+
+#     return ((x - x0)**2 + (y-y0)**2)<= r**2
+
+def circle_mask(size=64, r = 10, offsets = [(0,0),(10,-10),(10,10)] ):
+    mask = np.zeros((size, size), dtype=bool)
     x0 = y0 = size // 2
-    x0 += x_offset
-    y0 += y_offset
     y, x = np.ogrid[:size, :size]
     y = y[::-1]
 
-    return ((x - x0)**2 + (y-y0)**2)<= r**2
+    for x_offset, y_offset in offsets:
+        x_center = x0 + x_offset
+        y_center = y0 + y_offset
+        ring_mask = ((x - x_center) ** 2 + (y - y_center) ** 2) <= r**2
+        mask |= ring_mask  # Combine all rings into one mask
+
+    return mask
 
 # def get_centered_tree_rings_mask_with_center(size, r):
 #     """
@@ -509,11 +523,11 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
         gt_patch_tmp = copy.deepcopy(gt_patch)
         #circle watermark
         for i in range(args.w_radius, 0, -1):
-            tmp_mask1 = circle_mask(gt_init.shape[-1], r=i)
-            tmp_mask2 = circle_mask(gt_init.shape[-1], r=i, x_offset= 15, y_offset=15)
-            tmp_mask = tmp_mask1 | tmp_mask2
+            tmp_mask = circle_mask(gt_init.shape[-1], r=i)
+            # tmp_mask2 = circle_mask(gt_init.shape[-1], r=i, x_offset= 15, y_offset=15)
+            # tmp_mask = tmp_mask1 | tmp_mask2
             tmp_mask = torch.tensor(tmp_mask).to(device)
-            
+        
             for j in range(gt_patch.shape[1]):
                 gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
         # #left right
