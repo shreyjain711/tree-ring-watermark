@@ -82,50 +82,50 @@ def main(args):
             )
         orig_image_no_w = outputs_no_w.images[0]
         
-        # generation with watermarking
-        if init_latents_no_w is None:
-            set_random_seed(seed)
-            init_latents_w = pipe.get_random_latents()
-        else:
-            init_latents_w = copy.deepcopy(init_latents_no_w)
+        # # generation with watermarking
+        # if init_latents_no_w is None:
+        #     set_random_seed(seed)
+        #     init_latents_w = pipe.get_random_latents()
+        # else:
+        #     init_latents_w = copy.deepcopy(init_latents_no_w)
 
 
-        # Apply multiple watermarks
+        # # Apply multiple watermarks
 
-        # Define positions for multiple watermarks
-        H, W = init_latents_w.shape[-2:]  # Height and width of the latent space
-        watermark_positions = [
-            (H // 4, W // 4),        # Top-left
-            (H // 4, 3 * W // 4),    # Top-right
-            (3 * H // 4, W // 4),    # Bottom-left
-            (3 * H // 4, 3 * W // 4) # Bottom-right
-        ]
+        # # Define positions for multiple watermarks
+        # H, W = init_latents_w.shape[-2:]  # Height and width of the latent space
+        # watermark_positions = [
+        #     (H // 4, W // 4),        # Top-left
+        #     (H // 4, 3 * W // 4),    # Top-right
+        #     (3 * H // 4, W // 4),    # Bottom-left
+        #     (3 * H // 4, 3 * W // 4) # Bottom-right
+        # ]
     
-        for i in range(4):
-            print(f"Applying watermark {i + 1}/4 at position {watermark_positions[i]}")
+        # for i in range(4):
+        #     print(f"Applying watermark {i + 1}/4 at position {watermark_positions[i]}")
     
-            # Generate a circular mask for this watermark
-            x_offset, y_offset = watermark_positions[i]
-            watermark_mask = circle_mask(
-                size=max(H, W),
-                r=args.w_radius,
-                x_offset=x_offset - H // 2,
-                y_offset=y_offset - W // 2
-            )
-            watermark_mask = torch.tensor(watermark_mask, dtype=torch.bool).to(device)
+        #     # Generate a circular mask for this watermark
+        #     x_offset, y_offset = watermark_positions[i]
+        #     watermark_mask = circle_mask(
+        #         size=max(H, W),
+        #         r=args.w_radius,
+        #         x_offset=x_offset - H // 2,
+        #         y_offset=y_offset - W // 2
+        #     )
+        #     watermark_mask = torch.tensor(watermark_mask, dtype=torch.bool).to(device)
     
-            # Generate the corresponding watermark pattern
-            watermark_patch = get_watermarking_pattern(pipe, args, device)
+        #     # Generate the corresponding watermark pattern
+        #     watermark_patch = get_watermarking_pattern(pipe, args, device)
     
-            # Inject the watermark into the latent space
-            init_latents_w = inject_watermark(init_latents_w, watermark_mask, watermark_patch, args)
+        #     # Inject the watermark into the latent space
+        #     init_latents_w = inject_watermark(init_latents_w, watermark_mask, watermark_patch, args)
     
 
-        # # get watermarking mask
-        # watermarking_mask = get_watermarking_mask(init_latents_w, args, device)
+        # get watermarking mask
+        watermarking_mask = get_watermarking_mask(init_latents_w, args, device)
 
-        # # inject watermark
-        # init_latents_w = inject_watermark(init_latents_w, watermarking_mask, gt_patch, args)
+        # inject watermark
+        init_latents_w = inject_watermark(init_latents_w, watermarking_mask, gt_patch, args)
 
         outputs_w = pipe(
             current_prompt,
