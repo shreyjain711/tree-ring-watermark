@@ -514,15 +514,15 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
             
             for j in range(gt_patch.shape[1]):
                 gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
-        # #left right
-        # offset_init = 15
-        # for i in range(args.w_radius, 0, -1):
-        #     tmp_mask = circle_mask(gt_init.shape[-1], r=i, x_offset= offset_init, y_offset=offset_init)
-        #     tmp_mask = torch.tensor(tmp_mask).to(device)
+        #left right
+        offset_init = 15
+        for i in range(args.w_radius, 0, -1):
+            tmp_mask = circle_mask(gt_init.shape[-1], r=i, x_offset= offset_init, y_offset=offset_init)
+            tmp_mask = torch.tensor(tmp_mask).to(device)
             
-        #     for j in range(gt_patch.shape[1]):
-        #         gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
-        # #end of the left right exp
+            for j in range(gt_patch.shape[1]):
+                gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
+        #end of the left right exp
 
     return gt_patch
 
