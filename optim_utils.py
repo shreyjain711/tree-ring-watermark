@@ -347,30 +347,30 @@ def get_dataset(args):
     return dataset, prompt_key
 
 
-# def circle_mask(size=64, r=10, x_offset=0, y_offset=0):
-#     # reference: https://stackoverflow.com/questions/69687798/generating-a-soft-circluar-mask-using-numpy-python-3
-#     x0 = y0 = size // 2
-#     x0 += x_offset
-#     y0 += y_offset
-#     y, x = np.ogrid[:size, :size]
-#     y = y[::-1]
-
-#     return ((x - x0)**2 + (y-y0)**2)<= r**2
-
-def circle_mask(size=64, r = 10, offsets = [(0,0),(10,-10),(10,10)] ):
-    print("the size feed in circle mask:", size)
-    mask = np.zeros((size, size), dtype=bool)
+def circle_mask(size=64, r=10, x_offset=0, y_offset=0):
+    # reference: https://stackoverflow.com/questions/69687798/generating-a-soft-circluar-mask-using-numpy-python-3
     x0 = y0 = size // 2
+    x0 += x_offset
+    y0 += y_offset
     y, x = np.ogrid[:size, :size]
     y = y[::-1]
 
-    for x_offset, y_offset in offsets:
-        x_center = x0 + x_offset
-        y_center = y0 + y_offset
-        ring_mask = ((x - x_center) ** 2 + (y - y_center) ** 2) <= r**2
-        mask |= ring_mask  # Combine all rings into one mask
+    return ((x - x0)**2 + (y-y0)**2)<= r**2
 
-    return mask
+# def circle_mask(size=64, r = 10, offsets = [(0,0),(10,-10),(10,10)] ):
+#     print("the size feed in circle mask:", size)
+#     mask = np.zeros((size, size), dtype=bool)
+#     x0 = y0 = size // 2
+#     y, x = np.ogrid[:size, :size]
+#     y = y[::-1]
+
+#     for x_offset, y_offset in offsets:
+#         x_center = x0 + x_offset
+#         y_center = y0 + y_offset
+#         ring_mask = ((x - x_center) ** 2 + (y - y_center) ** 2) <= r**2
+#         mask |= ring_mask  # Combine all rings into one mask
+
+#     return mask
 
 # def get_centered_tree_rings_mask_with_center(size, r):
 #     """
