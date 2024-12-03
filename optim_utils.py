@@ -509,7 +509,9 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
         gt_patch_tmp = copy.deepcopy(gt_patch)
         #circle watermark
         for i in range(args.w_radius, 0, -1):
-            tmp_mask = circle_mask(gt_init.shape[-1], r=i)
+            tmp_mask1 = circle_mask(gt_init.shape[-1], r=i)
+            tmp_mask2 = circle_mask(gt_init.shape[-1], r=i, x_offset= 15, y_offset=15)
+            tmp_mask = tmp_mask1 | tmp_mask2
             tmp_mask = torch.tensor(tmp_mask).to(device)
             
             for j in range(gt_patch.shape[1]):
