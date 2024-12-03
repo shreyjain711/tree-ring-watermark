@@ -185,8 +185,8 @@ def main(args):
         if args.with_tracking:
             #table: 'exp_name', 'noise_vec_fft', 'noise_vec_fft_perturb', 'wm_mask', 'prompt', 'no_w_metric', 'w_metric', 'gen_no_w', 'gen_no_w_auged', 'gen_w', 'gen_w_auged'
             noise_vec_fft_img, noise_vec_fft_perturb_img = wandb.Image(noise_vec_to_fft_real(init_latents_w)), wandb.Image(noise_vec_to_fft_real(reversed_latents_w))
-            #wm_mask_img = wandb.Image(watermarking_mask.to(torch.float32))
-            wm_mask_img = wandb.Image(gt_patch.to(torch.float32))
+            wm_mask_img = wandb.Image(watermarking_mask.to(torch.float32))
+            #wm_mask_img = wandb.Image(gt_patch.to(torch.float32))
 
             gen_no_w_img, gen_no_w_auged_img = wandb.Image(orig_image_no_w), wandb.Image(orig_image_no_w_auged)
             gen_w_img, gen_w_auged_img = wandb.Image(orig_image_w), wandb.Image(orig_image_w_auged)
