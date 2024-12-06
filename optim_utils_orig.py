@@ -130,7 +130,7 @@ def image_distortion(img1, img2, seed, args):
         img2 = transforms.ColorJitter(brightness=args.brightness_factor)(img2)
 
     if args.resizedcrop_factor_x is not None and args.resizedcrop_factor_y is not None:
-        print("DBG", adsa) # test_debug
+        #print("DBG", adsa) # test_debug
         scale_x = args.resizedcrop_factor_x if args.resizedcrop_factor_x is not None else random.uniform(1, 0.5)
         scale_y = args.resizedcrop_factor_y if args.resizedcrop_factor_y is not None else random.uniform(1, 0.5)
         i, j, h, w = T.RandomResizedCrop.get_params(
