@@ -77,6 +77,28 @@ def image_distortion(img1, img2, seed, args):
         img1 = transforms.ColorJitter(brightness=args.brightness_factor)(img1)
         img2 = transforms.ColorJitter(brightness=args.brightness_factor)(img2)
 
+    if args.resizedcrop_factor_x is not None and args.resizedcrop_factor_y is not None:
+        print("DBG", adsa) # test_debug
+        scale_x = args.resizedcrop_factor_x if args.resizedcrop_factor_x is not None else random.uniform(1, 0.5)
+        scale_y = args.resizedcrop_factor_y if args.resizedcrop_factor_y is not None else random.uniform(1, 0.5)
+        i, j, h, w = T.RandomResizedCrop.get_params(
+            img1, scale=(scale_x, scale_y), ratio=(1, 1)
+        )
+        img1 = F.resized_crop(img1, i, j, h, w, img1.size)
+        img2 = F.resized_crop(img2, i, j, h, w, img2.size)
+
+    if args.erasing_factor is not None:
+        scale = args.erasing_factor if args.erasing_factor is not None else randtom.uniform(0, 0.25)
+        img1 = to_tensor([img1], norm_type=None)
+        img2 = to_tensor([img2], norm_type=None)
+        i, j, h, w, v = T.RandomErasing.get_params(
+            img1, scale=(scale, scale), ratio=(1, 1), value=[0]
+        )
+        img1 = F.erase(img1, i, j, h, w, v)
+        img1 = to_pil(img1, norm_type=None)[0]
+        img2 = F.erase(img2, i, j, h, w, v)
+        img2 = to_pil(img2, norm_type=None)[0]
+
     if args.contrast_factor is not None:
         factor = args.contrast_factor if args.contrast_factor is not None else random.uniform(1, 2)
         enhancer = ImageEnhance.Contrast(img1)
