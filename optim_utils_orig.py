@@ -77,6 +77,34 @@ def image_distortion(img1, img2, seed, args):
         img1 = transforms.ColorJitter(brightness=args.brightness_factor)(img1)
         img2 = transforms.ColorJitter(brightness=args.brightness_factor)(img2)
 
+    if args.contrast_factor is not None:
+        factor = args.contrast_factor if args.contrast_factor is not None else random.uniform(1, 2)
+        enhancer = ImageEnhance.Contrast(img1)
+        img1 = enhancer.enhance(factor)
+        enhancer = ImageEnhance.Contrast(img2)
+        img2 = enhancer.enhance(factor)
+
+
+    if args.noise_factor is not None:
+        std = args.noise_factor if args.noise_factor is not None else random.uniform(0, 0.1)
+        img1 = to_tensor([img1], norm_type=None)
+        noise = torch.randn(img1.size()) * std
+        img1 = to_pil((img1 + noise).clamp(0, 1), norm_type=None)[0]
+        img2 = to_tensor([img2], norm_type=None)
+        img2 = to_pil((img2 + noise).clamp(0, 1), norm_type=None)[0]
+
+    # if args.compression_factor is not None:
+    #     quality = args.compression_factor if args.compression_factor is not None else random.uniform(90, 10)
+    #     quality = int(quality)
+    #     buffered = io.BytesIO()
+    #     img1.save(buffered, format="JPEG", quality=quality)
+    #     buffered.seek(0)
+    #     img1 = img1.open(buffered)
+    #     buffered = io.BytesIO()
+    #     img2.save(buffered, format="JPEG", quality=quality)
+    #     buffered.seek(0)
+    #     img2 = img2.open(buffered)
+
     return img1, img2
 
 
